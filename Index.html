@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { font-family: Arial, sans-serif; text-align: center; padding: 50px 20px; background-color: #f4f4f9; }
+      .container { max-width: 400px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+      h2 { color: #333; }
+      input[type="number"], input[type="text"], select { width: 100%; padding: 15px; font-size: 18px; margin: 15px 0; border: 2px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+      button { width: 100%; padding: 15px; font-size: 18px; color: white; background-color: #28a745; border: none; border-radius: 5px; cursor: pointer; }
+      button:active { background-color: #218838; }
+      #message { margin-top: 20px; font-weight: bold; font-size: 18px; }
+      .success { color: #28a745; }
+      .error { color: #dc3545; }
+      .toggle-link { color: #007bff; text-decoration: none; font-size: 14px; display: block; margin-top: 20px; }
+      .toggle-link:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Daily Check-In</h2>
+      
+      <!-- Primary View: 6-Digit Code -->
+      <div id="codeSection">
+        <p>Enter your 6-Digit Code:</p>
+        <input type="number" id="pinInput" placeholder="000000" />
+        <button onclick="submitCheckIn('pin')">Check In</button>
+        <a href="#" class="toggle-link" onclick="toggleView('alt')">Forgot your code? Look up by Name, Phone, or Email.</a>
+      </div>
+
+      <!-- Alternate View: Look Up Info -->
+      <div id="altSection" style="display: none;">
+        <p>Select your lookup method:</p>
+        <select id="searchType">
+          <option value="2">Email Address</option>
+          <option value="1">Phone Number</option>
+          <option value="0">Full Name</option>
+        </select>
+        <input type="text" id="altInput" placeholder="Enter your info..." />
+        <button onclick="submitCheckIn('alt')">Check In</button>
+        <a href="#" class="toggle-link" onclick="toggleView('code')">Back to 6-Digit Code</a>
+      </div>
+
+      <div id="message"></div>
+    </div>
+
+    <script>
+      function toggleView(view) {
+        document.getElementById('message').innerHTML = ""; // Clear messages on switch
+        if (view === 'alt') {
+          document.getElementById('codeSection').style.display = 'none';
+          document.getElementById('altSection').style.display = 'block';
+        } else {
+          document.getElementById('altSection').style.display = 'none';
+          document.getElementById('codeSection').style.display = 'block';
+        }
+      }
+
+      function submitCheckIn(mode) {
+        var searchValue = "";
+        var searchColIndex = 3; // Default to Column D (6-Digit Code)
+        var msgDiv = document.getElementById("message");
+        
+        if (mode === 'pin') {
+          searchValue = document.getElementById("pinInput").value;
+          if (searchValue.length !== 6) {
+            msgDiv.className = "error";
+            msgDiv.innerHTML = "Please enter a valid 6-digit code.";
+            return;
+          }
+        } else if (mode === 'alt') {
+          searchValue = document.getElementById("altInput").value;
+          searchColIndex = document.getElementById("searchType").value;
+          if (searchValue.trim() === "") {
+            msgDiv.className = "error";
+            msgDiv.innerHTML = "Please enter your information to search.";
+            return;
+          }
+        }
+
+        msgDiv.style.color = "black";
+        msgDiv.innerHTML = "Checking...";
+
+        // Send data and the chosen column index to the backend
+        google.script.run
+          .withSuccessHandler(function(response) {
+            msgDiv.innerHTML = response;
+            if (response.includes("Success")) {
+              msgDiv.className = "success";
+              document.getElementById("pinInput").value = ""; 
+              document.getElementById("altInput").value = ""; 
+            } else {
+              msgDiv.className = "error";
+            }
+          })
+          .processCheckIn(searchValue, searchColIndex);
+      }
+    </script>
+  </body>
+</html>

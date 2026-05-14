@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f9; }
+      .container { max-width: 400px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+      h2 { color: #333; text-align: center; }
+      input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+      button { width: 100%; padding: 15px; font-size: 18px; color: white; background-color: #007bff; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+      button:active { background-color: #0056b3; }
+      #message { margin-top: 20px; font-weight: bold; text-align: center; font-size: 16px; }
+      .success { color: #28a745; }
+      .error { color: #dc3545; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Hobby Con Registration</h2>
+      <input type="text" id="regName" placeholder="Full Name" required />
+      <input type="tel" id="regPhone" placeholder="Phone Number (Optional)" />
+      <input type="email" id="regEmail" placeholder="Email Address" required />
+      <input type="number" id="regCode" placeholder="Create a 6-Digit Code" required />
+      
+      <button onclick="submitRegistration()">Register</button>
+      <div id="message"></div>
+    </div>
+
+    <script>
+      function submitRegistration() {
+        var name = document.getElementById("regName").value;
+        var phone = document.getElementById("regPhone").value;
+        var email = document.getElementById("regEmail").value;
+        var code = document.getElementById("regCode").value;
+        var msgDiv = document.getElementById("message");
+        
+        // Basic validation before hitting the server
+        if (!name || !email || code.length !== 6) {
+          msgDiv.className = "error";
+          msgDiv.innerHTML = "Please fill out all required fields and ensure your code is exactly 6 digits.";
+          return;
+        }
+
+        msgDiv.style.color = "black";
+        msgDiv.innerHTML = "Checking code availability...";
+
+        // Send data to the Google Apps Script backend
+        google.script.run
+          .withSuccessHandler(function(response) {
+            msgDiv.innerHTML = response;
+            if (response.includes("successful")) {
+              msgDiv.className = "success";
+              // Clear the form on success
+              document.getElementById("regName").value = "";
+              document.getElementById("regPhone").value = "";
+              document.getElementById("regEmail").value = "";
+              document.getElementById("regCode").value = "";
+            } else {
+              msgDiv.className = "error";
+            }
+          })
+          .processRegistration(name, phone, email, code);
+      }
+    </script>
+  </body>
+</html>
