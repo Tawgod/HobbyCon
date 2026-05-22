@@ -12,6 +12,13 @@
       #message { margin-top: 20px; font-weight: bold; text-align: center; font-size: 16px; }
       .success { color: #28a745; }
       .error { color: #dc3545; }
+      
+      /* Unified Navigation Styles */
+      .nav-section { margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; display: flex; flex-direction: column; gap: 12px; text-align: center; }
+      .nav-link { color: #007bff; text-decoration: none; font-weight: bold; font-size: 16px; }
+      .nav-link:hover { text-decoration: underline; }
+      .external-link { color: #e85d04; }
+      .success-link { color: #28a745; text-decoration: underline; font-size: 18px; display: block; margin-top: 15px; font-weight: bold;}
     </style>
   </head>
   <body>
@@ -24,6 +31,16 @@
       
       <button onclick="submitRegistration()">Register</button>
       <div id="message"></div>
+
+      <div class="nav-section">
+        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=home" class="nav-link" target="_top">🏠 Back to Home Hub</a>
+        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec" class="nav-link" target="_top">✅ Daily Check-In</a>
+        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=register" class="nav-link" target="_top">📋 Register for Convention</a>
+        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=schedule" class="nav-link" target="_top">📅 View Event Schedule</a>
+        <a href="https://www.thehobbycorner.net/hobby-con" class="nav-link external-link" target="_blank">🌐 Official Website</a>
+        <a href="https://www.facebook.com/events/1320409716816140" class="nav-link external-link" target="_blank">📘 Facebook Event Page</a>
+        <a href="https://www.signupgenius.com/index.cfm?go=s.signup&urlid=10C094CA9A723A4F5C43-63039520-hobby&useFullSite=true#/" class="nav-link external-link" target="_blank">✍️ Sign Up for Games</a>
+      </div>
     </div>
 
     <script>
@@ -34,7 +51,6 @@
         var code = document.getElementById("regCode").value;
         var msgDiv = document.getElementById("message");
         
-        // Basic validation before hitting the server
         if (!name || !email || code.length !== 6) {
           msgDiv.className = "error";
           msgDiv.innerHTML = "Please fill out all required fields and ensure your code is exactly 6 digits.";
@@ -44,19 +60,19 @@
         msgDiv.style.color = "black";
         msgDiv.innerHTML = "Checking code availability...";
 
-        // Send data to the Google Apps Script backend
         google.script.run
           .withSuccessHandler(function(response) {
-            msgDiv.innerHTML = response;
             if (response.includes("successful")) {
               msgDiv.className = "success";
-              // Clear the form on success
+              msgDiv.innerHTML = response + '<a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec" class="success-link" target="_top">Click here to Check In now!</a>';
+              
               document.getElementById("regName").value = "";
               document.getElementById("regPhone").value = "";
               document.getElementById("regEmail").value = "";
               document.getElementById("regCode").value = "";
             } else {
               msgDiv.className = "error";
+              msgDiv.innerHTML = response;
             }
           })
           .processRegistration(name, phone, email, code);

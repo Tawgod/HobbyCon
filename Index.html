@@ -14,13 +14,18 @@
       .error { color: #dc3545; }
       .toggle-link { color: #007bff; text-decoration: none; font-size: 14px; display: block; margin-top: 20px; }
       .toggle-link:hover { text-decoration: underline; }
+      
+      /* Unified Navigation Styles */
+      .nav-section { margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; display: flex; flex-direction: column; gap: 12px; }
+      .nav-link { color: #007bff; text-decoration: none; font-weight: bold; font-size: 16px; }
+      .nav-link:hover { text-decoration: underline; }
+      .external-link { color: #e85d04; }
     </style>
   </head>
   <body>
     <div class="container">
       <h2>Daily Check-In</h2>
       
-      <!-- Primary View: 6-Digit Code -->
       <div id="codeSection">
         <p>Enter your 6-Digit Code:</p>
         <input type="number" id="pinInput" placeholder="000000" />
@@ -28,7 +33,6 @@
         <a href="#" class="toggle-link" onclick="toggleView('alt')">Forgot your code? Look up by Name, Phone, or Email.</a>
       </div>
 
-      <!-- Alternate View: Look Up Info -->
       <div id="altSection" style="display: none;">
         <p>Select your lookup method:</p>
         <select id="searchType">
@@ -42,11 +46,21 @@
       </div>
 
       <div id="message"></div>
+
+      <div class="nav-section">
+        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=home" class="nav-link" target="_top">🏠 Back to Home Hub</a>
+        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec" class="nav-link" target="_top">✅ Daily Check-In</a>
+        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=register" class="nav-link" target="_top">📋 Register for Convention</a>
+        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=schedule" class="nav-link" target="_top">📅 View Event Schedule</a>
+        <a href="https://www.thehobbycorner.net/hobby-con" class="nav-link external-link" target="_blank">🌐 Official Website</a>
+        <a href="https://www.facebook.com/events/1320409716816140" class="nav-link external-link" target="_blank">📘 Facebook Event Page</a>
+        <a href="https://www.signupgenius.com/index.cfm?go=s.signup&urlid=10C094CA9A723A4F5C43-63039520-hobby&useFullSite=true#/" class="nav-link external-link" target="_blank">✍️ Sign Up for Games</a>
+      </div>
     </div>
 
     <script>
       function toggleView(view) {
-        document.getElementById('message').innerHTML = ""; // Clear messages on switch
+        document.getElementById('message').innerHTML = ""; 
         if (view === 'alt') {
           document.getElementById('codeSection').style.display = 'none';
           document.getElementById('altSection').style.display = 'block';
@@ -58,7 +72,7 @@
 
       function submitCheckIn(mode) {
         var searchValue = "";
-        var searchColIndex = 3; // Default to Column D (6-Digit Code)
+        var searchColIndex = 3; 
         var msgDiv = document.getElementById("message");
         
         if (mode === 'pin') {
@@ -81,7 +95,6 @@
         msgDiv.style.color = "black";
         msgDiv.innerHTML = "Checking...";
 
-        // Send data and the chosen column index to the backend
         google.script.run
           .withSuccessHandler(function(response) {
             msgDiv.innerHTML = response;

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f9; color: #333; }
+      .container { max-width: 600px; margin: auto; }
+      h2 { text-align: center; color: #007bff; }
+      
+      .tab-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
+      .tab-btn { padding: 10px 15px; border: none; background: #ddd; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+      .tab-btn.active { background: #007bff; color: white; }
+      
+      .event-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+      .event-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+      .event-details { font-size: 14px; color: #555; margin-bottom: 5px; }
+      
+      /* Description Box Styling */
+      .event-desc { font-size: 14px; color: #444; margin: 10px 0; font-style: italic; line-height: 1.4; border-left: 3px solid #007bff; padding-left: 10px; }
+      
+      .event-status { font-weight: bold; font-size: 14px; margin-top: 5px; }
+      .status-available { color: #155724; background: #d4edda; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+      .status-full { color: #721c24; background: #f8d7da; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+      
+      .loading { text-align: center; font-size: 18px; color: #666; margin-top: 50px; }
+      
+      .nav-section { margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; display: flex; flex-direction: column; gap: 12px; text-align: center; }
+      .nav-link { color: #007bff; text-decoration: none; font-weight: bold; font-size: 16px; }
+      .nav-link:hover { text-decoration: underline; }
+      .external-link { color: #e85d04; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Hobby Con Schedule</h2>
+      
+      <div id="loading" class="loading">Loading schedule...</div>
+      
+      <div id="tabContainer" class="tab-container" style="display: none;"></div>
+      <div id="eventList"></div>
+
+      <div class="nav-section">
+        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=home" class="nav-link" target="_top">🏠 Back to Home Hub</a>
+        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec" class="nav-link" target="_top">✅ Go to Daily Check-In</a>
+        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=register" class="nav-link" target="_top">📋 Register for the Convention</a>
+        <a href="https://www.signupgenius.com/index.cfm?go=s.signup&urlid=10C094CA9A723A4F5C43-63039520-hobby&useFullSite=true#/" class="nav-link external-link" target="_blank">✍️ Sign Up for Games (SignUpGenius)</a>
+      </div>
+    </div>
+
+    <script>
+      var allEvents = [];
+      var uniqueDays = [];
+
+      window.onload = function() {
+        google.script.run.withSuccessHandler(processData).getScheduleData();
+      };
+
+      function processData(data) {
+        allEvents = data;
+        uniqueDays = [...new Set(data.map(item => item.date))];
+        
+        document.getElementById('loading').style.display = 'none';
+        
+        var tabContainer = document.getElementById('tabContainer');
+        tabContainer.style.display = 'flex';
+        
+        uniqueDays.forEach(function(day, index) {
+          var btn = document.createElement('button');
+          btn.className = 'tab-btn' + (index === 0 ? ' active' : '');
+          btn.innerText = day.split(',')[0]; 
+          btn.onclick = function() { filterDay(day, btn); };
+          tabContainer.appendChild(btn);
+        });
+
+        if (uniqueDays.length > 0) {
+          filterDay(uniqueDays[0], tabContainer.firstChild);
+        }
+      }
+
+      function filterDay(selectedDay, clickedBtn) {
+        var buttons = document.getElementsByClassName('tab-btn');
+        for (var i = 0; i < buttons.length; i++) {
+          buttons[i].classList.remove('active');
+        }
+        clickedBtn.classList.add('active');
+
+        var listContainer = document.getElementById('eventList');
+        listContainer.innerHTML = ''; 
+        
+        var filteredEvents = allEvents.filter(function(ev) { return ev.date === selectedDay; });
+        
+        filteredEvents.forEach(function(ev) {
+          var statusClass = ev.status === 'FULL' ? 'status-full' : 'status-available';
+          
+          var descHtml = ev.description ? `<div class="event-desc">${ev.description}</div>` : '';
+          
+          var cardHtml = `
+            <div class="event-card">
+              <div class="event-title">${ev.title}</div>
+              <div class="event-details"><strong>Time:</strong> ${ev.time}</div>
+              <div class="event-details"><strong>Location:</strong> ${ev.location}</div>
+              ${descHtml}
+              <div class="event-status ${statusClass}">${ev.status} (${ev.slots})</div>
+            </div>
+          `;
+          listContainer.innerHTML += cardHtml;
+        });
+      }
+    </script>
+  </body>
+</html>
