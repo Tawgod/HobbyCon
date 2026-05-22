@@ -24,18 +24,18 @@
   <body>
     <div class="container">
       <h2>Hobby Con Registration</h2>
-      <input type="text" id="regName" placeholder="Full Name" required />
+      
+      <input type="text" id="regName" placeholder="Full Name (Required)" required />
       <input type="tel" id="regPhone" placeholder="Phone Number (Optional)" />
-      <input type="email" id="regEmail" placeholder="Email Address" required />
-      <input type="number" id="regCode" placeholder="Create a 6-Digit Code" required />
+      <input type="email" id="regEmail" placeholder="Email Address (Optional)" />
+      <input type="number" id="regCode" placeholder="Create a 6-Digit Code (Required)" required />
       
       <button onclick="submitRegistration()">Register</button>
       <div id="message"></div>
 
       <div class="nav-section">
         <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=home" class="nav-link" target="_top">🏠 Back to Home Hub</a>
-        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec" class="nav-link" target="_top">✅ Daily Check-In</a>
-        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=register" class="nav-link" target="_top">📋 Register for Convention</a>
+        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec" class="nav-link" target="_top">✅ Go to Daily Check-In</a>
         <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=schedule" class="nav-link" target="_top">📅 View Event Schedule</a>
         <a href="https://www.thehobbycorner.net/hobby-con" class="nav-link external-link" target="_blank">🌐 Official Website</a>
         <a href="https://www.facebook.com/events/1320409716816140" class="nav-link external-link" target="_blank">📘 Facebook Event Page</a>
@@ -51,9 +51,10 @@
         var code = document.getElementById("regCode").value;
         var msgDiv = document.getElementById("message");
         
-        if (!name || !email || code.length !== 6) {
+        // Updated Validation: It no longer checks if the email field is empty
+        if (!name || code.length !== 6) {
           msgDiv.className = "error";
-          msgDiv.innerHTML = "Please fill out all required fields and ensure your code is exactly 6 digits.";
+          msgDiv.innerHTML = "Please enter your Full Name and ensure your code is exactly 6 digits.";
           return;
         }
 
@@ -64,7 +65,7 @@
           .withSuccessHandler(function(response) {
             if (response.includes("successful")) {
               msgDiv.className = "success";
-              msgDiv.innerHTML = response + '<a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec" class="success-link" target="_top">Click here to Check In now!</a>';
+              msgDiv.innerHTML = response + '<br><br><a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec" class="success-link" target="_top">Click here to Check In now!</a>';
               
               document.getElementById("regName").value = "";
               document.getElementById("regPhone").value = "";

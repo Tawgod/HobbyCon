@@ -6,7 +6,7 @@
       body { font-family: Arial, sans-serif; text-align: center; padding: 50px 20px; background-color: #f4f4f9; }
       .container { max-width: 400px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
       h2 { color: #333; }
-      input[type="number"], input[type="text"], select { width: 100%; padding: 15px; font-size: 18px; margin: 15px 0; border: 2px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+      input[type="text"], input[type="tel"], select { width: 100%; padding: 15px; font-size: 18px; margin: 15px 0; border: 2px solid #ccc; border-radius: 5px; box-sizing: border-box; }
       button { width: 100%; padding: 15px; font-size: 18px; color: white; background-color: #28a745; border: none; border-radius: 5px; cursor: pointer; }
       button:active { background-color: #218838; }
       #message { margin-top: 20px; font-weight: bold; font-size: 18px; }
@@ -15,7 +15,6 @@
       .toggle-link { color: #007bff; text-decoration: none; font-size: 14px; display: block; margin-top: 20px; }
       .toggle-link:hover { text-decoration: underline; }
       
-      /* Unified Navigation Styles */
       .nav-section { margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; display: flex; flex-direction: column; gap: 12px; }
       .nav-link { color: #007bff; text-decoration: none; font-weight: bold; font-size: 16px; }
       .nav-link:hover { text-decoration: underline; }
@@ -28,7 +27,7 @@
       
       <div id="codeSection">
         <p>Enter your 6-Digit Code:</p>
-        <input type="number" id="pinInput" placeholder="000000" />
+        <input type="tel" id="pinInput" placeholder="000000" maxlength="6" />
         <button onclick="submitCheckIn('pin')">Check In</button>
         <a href="#" class="toggle-link" onclick="toggleView('alt')">Forgot your code? Look up by Name, Phone, or Email.</a>
       </div>
@@ -36,9 +35,9 @@
       <div id="altSection" style="display: none;">
         <p>Select your lookup method:</p>
         <select id="searchType">
+          <option value="0">Full Name</option>
           <option value="2">Email Address</option>
           <option value="1">Phone Number</option>
-          <option value="0">Full Name</option>
         </select>
         <input type="text" id="altInput" placeholder="Enter your info..." />
         <button onclick="submitCheckIn('alt')">Check In</button>
@@ -49,12 +48,8 @@
 
       <div class="nav-section">
         <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=home" class="nav-link" target="_top">🏠 Back to Home Hub</a>
-        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec" class="nav-link" target="_top">✅ Daily Check-In</a>
-        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=register" class="nav-link" target="_top">📋 Register for Convention</a>
+        <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=register" class="nav-link" target="_top">📋 Register for the Convention</a>
         <a href="https://script.google.com/macros/s/AKfycbwEAwF2jmvnKFmKIbUNBa-9DdoD_duiDzhvx9tz20st016tXGkjYgvrNEG4GGNMUOiQ/exec?mode=schedule" class="nav-link" target="_top">📅 View Event Schedule</a>
-        <a href="https://www.thehobbycorner.net/hobby-con" class="nav-link external-link" target="_blank">🌐 Official Website</a>
-        <a href="https://www.facebook.com/events/1320409716816140" class="nav-link external-link" target="_blank">📘 Facebook Event Page</a>
-        <a href="https://www.signupgenius.com/index.cfm?go=s.signup&urlid=10C094CA9A723A4F5C43-63039520-hobby&useFullSite=true#/" class="nav-link external-link" target="_blank">✍️ Sign Up for Games</a>
       </div>
     </div>
 
@@ -76,16 +71,16 @@
         var msgDiv = document.getElementById("message");
         
         if (mode === 'pin') {
-          searchValue = document.getElementById("pinInput").value;
+          searchValue = document.getElementById("pinInput").value.trim();
           if (searchValue.length !== 6) {
             msgDiv.className = "error";
             msgDiv.innerHTML = "Please enter a valid 6-digit code.";
             return;
           }
         } else if (mode === 'alt') {
-          searchValue = document.getElementById("altInput").value;
+          searchValue = document.getElementById("altInput").value.trim();
           searchColIndex = document.getElementById("searchType").value;
-          if (searchValue.trim() === "") {
+          if (searchValue === "") {
             msgDiv.className = "error";
             msgDiv.innerHTML = "Please enter your information to search.";
             return;
@@ -105,6 +100,11 @@
             } else {
               msgDiv.className = "error";
             }
+          })
+          .withFailureHandler(function(error) {
+            // IF GOOGLE CRASHES, IT WILL PRINT THE ERROR HERE IN RED!
+            msgDiv.className = "error";
+            msgDiv.innerHTML = "Server connection failed: " + error.message;
           })
           .processCheckIn(searchValue, searchColIndex);
       }
