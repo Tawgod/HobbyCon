@@ -85,6 +85,14 @@ function processCheckIn(searchValue, searchTypeIndex) {
       }
 
       if (cellValue === normalizedSearch && normalizedSearch !== "") { 
+        
+        // --- NEW RULE: Check if the PIN code is missing! ---
+        var currentPin = String(data[i][3]).replace(/^'/, '').trim();
+        if (currentPin === "") {
+          // Tell the website to ask for a PIN, and tell it which Row we are on
+          return "REQUIRE_NEW_PIN|" + i;
+        }
+
         if (data[i][dateColIndex] !== "") {
           return "You are already checked in for today, " + data[i][0] + "!";
         }
@@ -96,6 +104,48 @@ function processCheckIn(searchValue, searchTypeIndex) {
     return "Record not found. Please check your spelling or verify the code.";
   } catch(e) {
     return "System Crash: " + e.message; 
+  }
+}
+
+// --- NEW FUNCTION TO SAVE THE CREATED PIN AND FINISH CHECK IN ---
+function updatePinAndCheckIn(rowIndex, newPin) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Attendance");
+    var data = sheet.getDataRange().getValues();
+
+    var stringCode = String(newPin).trim();
+    if (stringCode.length !== 6) return "Error: PIN must be exactly 6 digits.";
+
+    // Make sure they didn't pick a code someone else is already using
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][3]).replace(/^'/, '').trim() === stringCode) {
+        return "Error: That 6-digit code is already taken. Please choose a different one.";
+      }
+    }
+
+    // Save the new PIN to their row (with the apostrophe to protect leading zeros)
+    sheet.getRange(parseInt(rowIndex) + 1, 4).setValue("'" + stringCode);
+
+    // Finish the Check-In process
+    var headers = data[0]; 
+    var today = new Date();
+    var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var todayString = monthNames[today.getMonth()] + " " + today.getDate();
+    var dateColIndex = headers.indexOf(todayString);
+    
+    if (dateColIndex !== -1) {
+      if (data[rowIndex][dateColIndex] !== "") {
+         return "Success! Your new PIN was saved, but you were already checked in for today, " + data[rowIndex][0] + "!";
+      }
+      var timeString = today.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      sheet.getRange(parseInt(rowIndex) + 1, dateColIndex + 1).setValue("In at " + timeString);
+      return "Success! New code saved. Welcome, " + data[rowIndex][0] + "!";
+    } else {
+       return "Success! Your new code was saved, but today is not an active event day.";
+    }
+  } catch(e) {
+    return "System Crash: " + e.message;
   }
 }
 

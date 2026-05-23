@@ -9,9 +9,15 @@
       input[type="text"], input[type="tel"], select { width: 100%; padding: 15px; font-size: 18px; margin: 15px 0; border: 2px solid #ccc; border-radius: 5px; box-sizing: border-box; }
       button { width: 100%; padding: 15px; font-size: 18px; color: white; background-color: #28a745; border: none; border-radius: 5px; cursor: pointer; }
       button:active { background-color: #218838; }
+      
+      /* New Blue Button for Saving Pins */
+      .btn-blue { background-color: #007bff; }
+      .btn-blue:active { background-color: #0056b3; }
+
       #message { margin-top: 20px; font-weight: bold; font-size: 18px; }
       .success { color: #28a745; }
       .error { color: #dc3545; }
+      .notice { color: #e85d04; } /* Orange text for the prompt */
       .toggle-link { color: #007bff; text-decoration: none; font-size: 14px; display: block; margin-top: 20px; }
       .toggle-link:hover { text-decoration: underline; }
       
@@ -44,6 +50,13 @@
         <a href="#" class="toggle-link" onclick="toggleView('code')">Back to 6-Digit Code</a>
       </div>
 
+      <div id="newPinSection" style="display: none;">
+        <p><strong>Record Found!</strong><br>It looks like you don't have a 6-digit code yet. Please create one for faster check-ins tomorrow!</p>
+        <input type="tel" id="createPinInput" placeholder="Create a 6-Digit Code" maxlength="6" />
+        <button class="btn-blue" onclick="submitNewPin()">Save Code & Check In</button>
+        <a href="#" class="toggle-link" onclick="toggleView('code')">Cancel and go back</a>
+      </div>
+
       <div id="message"></div>
 
       <div class="nav-section">
@@ -54,8 +67,12 @@
     </div>
 
     <script>
+      var pendingRowIndex = null; // Secretly remembers which row to update
+
       function toggleView(view) {
         document.getElementById('message').innerHTML = ""; 
+        document.getElementById('newPinSection').style.display = 'none';
+
         if (view === 'alt') {
           document.getElementById('codeSection').style.display = 'none';
           document.getElementById('altSection').style.display = 'block';
@@ -87,11 +104,26 @@
           }
         }
 
+        msgDiv.className = "";
         msgDiv.style.color = "black";
         msgDiv.innerHTML = "Checking...";
 
         google.script.run
           .withSuccessHandler(function(response) {
+            // INTERCEPT THE BLANK PIN MESSAGE
+            if (typeof response === 'string' && response.startsWith("REQUIRE_NEW_PIN|")) {
+                pendingRowIndex = response.split("|")[1]; // Save the row number
+                
+                // Hide search boxes, show the new pin box
+                document.getElementById('codeSection').style.display = 'none';
+                document.getElementById('altSection').style.display = 'none';
+                document.getElementById('newPinSection').style.display = 'block';
+                
+                msgDiv.className = "notice";
+                msgDiv.innerHTML = ""; 
+                return;
+            }
+
             msgDiv.innerHTML = response;
             if (response.includes("Success")) {
               msgDiv.className = "success";
@@ -102,11 +134,46 @@
             }
           })
           .withFailureHandler(function(error) {
-            // IF GOOGLE CRASHES, IT WILL PRINT THE ERROR HERE IN RED!
             msgDiv.className = "error";
             msgDiv.innerHTML = "Server connection failed: " + error.message;
           })
           .processCheckIn(searchValue, searchColIndex);
+      }
+
+      function submitNewPin() {
+        var newPin = document.getElementById("createPinInput").value.trim();
+        var msgDiv = document.getElementById("message");
+
+        if (newPin.length !== 6) {
+            msgDiv.className = "error";
+            msgDiv.innerHTML = "Please enter exactly 6 digits.";
+            return;
+        }
+
+        msgDiv.className = "";
+        msgDiv.style.color = "black";
+        msgDiv.innerHTML = "Saving and checking in...";
+
+        google.script.run
+          .withSuccessHandler(function(response) {
+              msgDiv.innerHTML = response;
+              if (response.includes("Success")) {
+                  msgDiv.className = "success";
+                  document.getElementById("createPinInput").value = "";
+                  
+                  // Wait 4 seconds so they can read the success message, then reset the screen for the next person
+                  setTimeout(function() {
+                      toggleView('code'); 
+                  }, 4000);
+              } else {
+                  msgDiv.className = "error";
+              }
+          })
+          .withFailureHandler(function(error) {
+              msgDiv.className = "error";
+              msgDiv.innerHTML = "Server connection failed: " + error.message;
+          })
+          .updatePinAndCheckIn(pendingRowIndex, newPin);
       }
     </script>
   </body>
